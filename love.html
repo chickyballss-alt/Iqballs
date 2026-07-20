@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Lempar Dadu</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+            margin: 0;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        /* Desain Dadu */
+        .dice {
+            width: 100px;
+            height: 100px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #e74c3c;
+            transition: transform 0.2s ease;
+            margin-bottom: 40px;
+            border: 2px solid #ddd;
+        }
+
+        /* Animasi berputar saat dilempar */
+        .shake {
+            animation: shakeAnim 0.5s ease-in-out;
+        }
+
+        @keyframes shakeAnim {
+            0% { transform: rotate(0deg) scale(1); }
+            20% { transform: rotate(-15deg) scale(1.1); }
+            40% { transform: rotate(15deg) scale(1.1); }
+            60% { transform: rotate(-10deg) scale(1.1); }
+            80% { transform: rotate(10deg) scale(1.1); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        /* Tombol */
+        button {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #3498db;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Kocok Dadumu!</h1>
+    
+    <div class="dice" id="dice">1</div>
+
+    <button onclick="rollDice()">Lempar Dadu</button>
+
+    <script>
+        function rollDice() {
+            const dice = document.getElementById('dice');
+            const button = document.querySelector('button');
+            
+            // Nonaktifkan tombol sementara agar tidak di-spam saat animasi jalan
+            button.disabled = true;
+            
+            // Tambahkan class animasi shake
+            dice.classList.add('shake');
+            
+            // Ubah angka secara acak selama animasi berjalan agar efeknya lebih real
+            let counter = 0;
+            const interval = setInterval(() => {
+                dice.innerText = Math.floor(Math.random() * 6) + 1;
+                counter++;
+                if(counter > 5) clearInterval(interval);
+            }, 70);
+
+            // Setelah animasi selesai (500ms)
+            setTimeout(() => {
+                // Hapus class animasi agar bisa digunakan lagi nanti
+                dice.classList.remove('shake');
+                
+                // Tentukan angka final (1 sampai 6)
+                const finalResult = Math.floor(Math.random() * 6) + 1;
+                dice.innerText = finalResult;
+                
+                // Aktifkan kembali tombolnya
+                button.disabled = false;
+            }, 500);
+        }
+    </script>
+
+</body>
+</html>
