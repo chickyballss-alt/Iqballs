@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Love Text Space Effect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+        #canvas3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            cursor: grab;
+        }
+        #canvas3d:active {
+            cursor: grabbing;
+        }
+        .pov-text {
+            position: relative;
+            z-index: 2;
+            color: #fff;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+            pointer-events: none; 
+            max-width: 80%;
+            line-height: 1.5;
+            opacity: 1;
+            transition: opacity 1.5s ease;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="canvas3d"></div>
+
+    <div class="pov-text" id="povText">
+        pov:baru bangun tiba tiba<br>dikirim ini🥺🥺🥺
+    </div>
+
+    <script>
+        // 1. Setup Scene, Kamera, dan Renderer 3D
+        const container = document.getElementById('canvas3d');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 0, 1); 
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        // 2. Setup OrbitControls (Rotasi 360 derajat)
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = false;   
+
+        // 3. Fungsi Membuat Tekstur Canvas
+        function createTextTexture(text, isHeart) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 512;
+            canvas.height = 128;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 20;
+
+            if (!isHeart) {
+                ctx.font = 'bold 34px Arial'; 
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+            } else {
+                ctx.fillStyle = '#ff1a1a';
+                let size = 50;
+                let x = canvas.width / 2;
+                let y = canvas.height / 2 - 20;
+                ctx.beginPath();
+                ctx.arc(x - size / 2, y, size / 2, Math.PI, 0, false);
+                ctx.arc(x + size / 2, y, size / 2, Math.PI, 0, false);
+                ctx.lineTo(x, y + size);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // 4. Menyebarkan objek ke ruang 3D
+        const items = [];
+        const itemCount = 160; 
+
+        for (let i = 0; i < itemCount; i++) {
+            let textSelected = "";
+            let isHeart = false;
+
+            const roll = Math.random(); 
+
+            if (roll < 0.80) {
+                // TEPAT 80%: Menampilkan teks utama sesuai request dengan tanda koma
+                textSelected = "I LOVE YOU,CANTIKKU🤍";
+            } else if (roll < 0.90) {
+                // 10% Menampilkan teks pendek
+                textSelected = "I LOVE YOU 🤍";
+            } else {
+                // 10% Menampilkan bentuk Hati ❤️
+                isHeart = true;
+            }
+
+            const texture = createTextTexture(textSelected, isHeart);
+            const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(material);
+
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+            const radius = 140 + Math.random() * 160; 
+
+            sprite.position.x = radius * Math.sin(phi) * Math.cos(theta);
+            sprite.position.y = radius * Math.sin(phi) * Math.sin(theta);
+            sprite.position.z = radius * Math.cos(phi);
+
+            sprite.scale.set(45, 11, 1);
+            
+            sprite.userData = { speedY: Math.random() * 0.4 + 0.3 };
+
+            scene.add(sprite);
+            items.push(sprite);
+        }
+
+        // 5. Animasi Gerakan
+        function animate() {
+            requestAnimationFrame(animate);
+
+            items.forEach(sprite => {
+                sprite.position.y -= sprite.userData.speedY;
+                
+                if (sprite.position.y < -250) {
+                    sprite.position.y = 250;
+                }
+            });
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 6. Responsive Screen Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 7. Menghilangkan teks POV otomatis
+        const povText = document.getElementById('povText');
+        setTimeout(() => {
+            povText.style.opacity = '0'; 
+            setTimeout(() => {
+                povText.style.display = 'none'; 
+            }, 1500); 
+        }, 4000); 
+    </script>
+</body>
+</html>
